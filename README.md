@@ -1,37 +1,89 @@
-# lisspyscope
+# `lisspyscope`
 
-Generate **endlessly looping** stereo tones whose X-Y trace on an oscilloscope forms classic Lissajous figures.
+_A compact Python library for synthesising, visualising and analysing Lissajous figures._
+
+***
+
+## Overview
+
+`lisspyscope` produces **phase–accurate, gap-free stereo signals** whose x-y trace on an oscilloscope forms a mathematically closed Lissajous curve.
+
+It was developed to support undergraduate laboratories on coupled oscillations and phase relationships. The library provides reproducible, phase-accurate audio–visual stimuli that align with learning objectives in introductory and intermediate physics courses.
+
+
+***
+
+## Installation
+
+```bash
+# audio only
+pip install lisspyscope
+
+# audio + plotting support
+pip install lisspyscope[plot]
 ```
-pip install lisspyscope # minimal install
-pip install lisspyscope[plot] # add matplotlib for on-screen plots
-```
-## Quick start
-```
+
+All wheels are pure-Python; no compilation step is required.
+
+***
+
+## Core Features
+
+- **Auto-closing buffers**
+The generator computes the least-common-multiple of channel periods so every trace starts and ends at identical phase.
+- **Exact single-buffer looping**
+Continuous playback uses the same closed buffer, ensuring no clicks, drifts or cumulative phase error.
+- **Lightweight dependency stack**
+- **Deterministic output** – Given identical parameters and NumPy version, the generated buffer is bit-for-bit reproducible.
+***
+
+## API Summary
+
+| Function | Purpose | Key Parameters |
+| :-- | :-- | :-- |
+| `generate_lissajous()` | Return `(buffer, sr)`—float32 stereo NumPy array. | `base_freq`, `ratio`, `phase_deg`, `sr` |
+| `play_lissajous()` | Loop the buffer indefinitely (blocking). | as above |
+| `plot_lissajous()` | Render the trace with Matplotlib. | as above |
+
+### Parameter Reference
+
+| Name | Type | Default | Meaning |
+| :-- | :-- | :-- | :-- |
+| `base_freq` | float | 1,000 Hz | Left/X frequency $f_x$. |
+| `ratio` | int | 1 | Right/Y multiplier $f_y = ratio \cdot f_x$. |
+| `phase_deg` | float | 90° | Phase offset of $f_y$. |
+| `sr` | int | 48,000 | Sample rate (samples s⁻¹). |
+
+
+***
+
+## Minimal Working Examples
+
+```python
 import lisspyscope as ls
-
-#Hear and see a perfect circle (ratio 1 : 1, phase 90 °); press Ctrl-C to stop audio.
-
-ls.play_lissajous()
 ```
-Plot a 3 : 2 figure without sound
-ls.plot_lissajous(base_freq=300, ratio=2, phase_deg=0)
 
-| Parameter   | Purpose                                                   | Default |
-|-------------|-----------------------------------------------------------|---------|
-| `base_freq` | Left/X-channel frequency \(f_x\) in hertz                 | 1000     |
-| `ratio`     | Integer multiplier for right/Y \(f_y = \text{ratio} \times f_x\) | 1 |
-| `phase_deg` | Phase offset applied to \(f_y\) (degrees)                 | 90      |
-| `sr`        | Sample rate (samples/s)                                   | 48,000  |
+```python
+# 1. Classic circle (1 : 1, 90°)
+ls.plot_lissajous()        # non-blocking figure
+ls.play_lissajous()        # endless tone, Ctrl-C to stop
 
-The library auto-selects the shortest duration that closes the figure, then **streams it in a loop** through a persistent audio stream so the scope trace stays rock-steady.
+```
 
-## Classroom ideas
+```python
+# 2. Generate waves with 1 : 3 frequency ratio with 45° phase
+ls.plot_lissajous(base_freq=500, ratio=3, phase_deg=45)
 
-- **Harmonic ratios** – vary `ratio` (1 : 2, 2 : 3, 3 : 4…) to visualise consonance and dissonance.  
-- **Unknown-frequency measurement** – feed an external tone into one scope channel and tune `base_freq` until the figure simplifies, revealing the unknown frequency.
+```
 
----
+```python
+# 3. Retrieve closed buffer for custom analysis
+buf, sr = ls.generate_lissajous(base_freq=250, ratio=4, phase_deg=0)
+# buf.shape → (192, 2) for 250 Hz at 48 kHz
+```
+***
 
 ## License
 
-MIT — see `LICENSE` for details.
+MIT—you are free to use, modify and distribute, provided the copyright notice is retained.
+

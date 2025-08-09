@@ -1,4 +1,4 @@
-# examples/ratio_2_to_3_phase45.py
+# examples/ratio_1_to_3_phase45.py
 """
 Play and plot a 2 : 3 Lissajous figure with a 45 ° phase offset.
 
@@ -8,7 +8,7 @@ Play and plot a 2 : 3 Lissajous figure with a 45 ° phase offset.
 
 Usage
 -----
-python examples/ratio_2_to_3_phase45.py
+python examples/ratio_1_to_3_phase45.py
 """
 
 import lisspyscope as ls
