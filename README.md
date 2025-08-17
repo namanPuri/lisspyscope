@@ -50,9 +50,9 @@ Continuous playback uses the same closed buffer, ensuring no clicks, drifts or c
 | Name | Type | Default | Meaning |
 | :-- | :-- | :-- | :-- |
 | `base_freq` | float | 1,000 Hz | Base frequency |
-| `l_fact` | int | 1 | Left/X multiplier $f_x = l\_fact \cdot base\_freq$ |
-| `r_fact` | int | 1 | Right/Y multiplier $f_y = r\_fact \cdot base\_freq$ |
-| `phase_deg` | float | 90° | Phase offset of $f_y$. |
+| `l_fact` | int | 1 | Left/X multiplier f_x = `l_fact` . `base_freq` |
+| `r_fact` | int | 1 | Right/Y multiplier f_y = `r_fact` . `base_freq` |
+| `phase_deg` | float | 90° | Phase offset of f_y. |
 | `sr` | int | 48,000 | Sample rate (samples s⁻¹). |
 
 
