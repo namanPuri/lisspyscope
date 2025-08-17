@@ -21,10 +21,11 @@ import numpy as np
 # ---------------------------------------------------------------------
 # Defaults
 # ---------------------------------------------------------------------
-DEFAULT_BASE_FREQ = 1000.0       # Hz  (left/X channel)
-DEFAULT_RATIO = 1               # right/Y = ratio × base
-DEFAULT_PHASE_DEG = 90.0        # degrees   (circle)
-DEFAULT_SR = 48_000             # samples/s
+DEFAULT_BASE_FREQ = 1000.0       # Hz  (Base frequency)
+DEFAULT_R_FACT = 1               # right = r_fact × base
+DEFAULT_L_FACT = 1               # left  = l_fact x base   
+DEFAULT_PHASE_DEG = 90.0         # degrees   (circle)
+DEFAULT_SR = 48_000              # samples/s
 
 
 # ---------------------------------------------------------------------
@@ -36,16 +37,18 @@ def _lcm(a: int, b: int) -> int:
     return abs(a * b) // gcd(a, b)
 
 
-def _auto_duration(base_freq: float, ratio: int) -> float:
+def _auto_duration(base_freq: float, l_fact: int, r_fact: int) -> float:
     """Shortest time that closes the figure (in seconds)."""
-    return _lcm(1, ratio) / base_freq
+    return _lcm(l_fact, r_fact) / base_freq
 
 
-def _validate(base_freq: float, ratio: int, sr: int) -> None:
+def _validate(base_freq: float, l_fact: int, r_fact: int, sr: int) -> None:
     if base_freq <= 0:
         raise ValueError("base_freq must be positive.")
-    if ratio <= 0 or not isinstance(ratio, int):
-        raise ValueError("ratio must be a positive integer.")
+    if l_fact <= 0 or not isinstance(l_fact, int):
+        raise ValueError("l_fact must be a positive integer.")
+    if r_fact <= 0 or not isinstance(r_fact, int):
+        raise ValueError("r_fact must be a positive integer.")
     if sr <= 0:
         raise ValueError("sample rate must be positive.")
 
@@ -55,7 +58,8 @@ def _validate(base_freq: float, ratio: int, sr: int) -> None:
 # ---------------------------------------------------------------------
 def generate_lissajous(
     base_freq: float = DEFAULT_BASE_FREQ,
-    ratio: int = DEFAULT_RATIO,
+    l_fact: int = DEFAULT_L_FACT,
+    r_fact: int = DEFAULT_L_FACT,
     phase_deg: float = DEFAULT_PHASE_DEG,
     sr: int = DEFAULT_SR,
 ) -> Tuple[np.ndarray, int]:
@@ -66,18 +70,19 @@ def generate_lissajous(
     Parameters
     ----------
     base_freq : float  (Hz)
-    ratio     : int    (right = ratio × base_freq)
+    l_fact    : int   (left = l_fact × base_freq)
+    r_fact    : int   (right = r_fact × base_freq) 
     phase_deg : float  (degrees)
     sr        : int    (sample rate in samples/s)
 
     The duration is computed automatically; users cannot override it.
     """
-    _validate(base_freq, ratio, sr)
+    _validate(base_freq, l_fact, r_fact, sr)
 
-    f_left = base_freq
-    f_right = base_freq * ratio
+    f_left = base_freq * l_fact
+    f_right = base_freq * r_fact
     phase = np.deg2rad(phase_deg)
-    duration = _auto_duration(base_freq, ratio)
+    duration = _auto_duration(base_freq, l_fact, r_fact)
 
     t = np.linspace(0.0, duration, int(sr * duration), endpoint=False, dtype=np.float32)
 
@@ -94,19 +99,21 @@ def generate_lissajous(
 # ---------------------------------------------------------------------
 def play_lissajous(
     base_freq: float = DEFAULT_BASE_FREQ,
-    ratio: int = DEFAULT_RATIO,
+    l_fact: int = DEFAULT_L_FACT,
+    r_fact: int = DEFAULT_R_FACT,
     phase_deg: float = DEFAULT_PHASE_DEG,
     sr: int = DEFAULT_SR,
 ) -> None:
     """Generate the buffer and play it (blocking)."""
-    buffer, sr = generate_lissajous(base_freq, ratio, phase_deg, sr)
+    buffer, sr = generate_lissajous(base_freq, l_fact, r_fact, phase_deg, sr)
     from .audio import play_buffer
     play_buffer(buffer, sr)
 
 
 def plot_lissajous(
     base_freq: float = DEFAULT_BASE_FREQ,
-    ratio: int = DEFAULT_RATIO,
+    l_fact: int = DEFAULT_L_FACT,
+    r_fact: int = DEFAULT_R_FACT,
     phase_deg: float = DEFAULT_PHASE_DEG,
     sr: int = DEFAULT_SR,
 ) -> None:
@@ -118,15 +125,15 @@ def plot_lissajous(
             "Plotting requires matplotlib → pip install lisspyscope[plot]"
         ) from exc
 
-    buffer, _ = generate_lissajous(base_freq, ratio, phase_deg, sr)
+    buffer, _ = generate_lissajous(base_freq, l_fact, r_fact, phase_deg, sr)
     double_buf = np.vstack([buffer, buffer])
     x, y = double_buf.T
     plt.plot(x, y, lw=0.8)
     plt.title(
-        rf"Lissajous: $f_x={base_freq}$ Hz, "
-        rf"$f_y={ratio}\,f_x$ ({base_freq*ratio:.0f} Hz), "
-        rf"$\varphi={phase_deg:.1f}$°"
-    )
+    rf"Lissajous: $f_L={base_freq*l_fact:.0f}\,\text{{Hz}}$, "
+    rf"$f_R={base_freq*r_fact:.0f}\,\text{{Hz}}$, "
+    rf"$\varphi={phase_deg:.1f}^\circ$"
+)
     plt.axis("equal")
     plt.xlabel("Left channel")
     plt.ylabel("Right channel")

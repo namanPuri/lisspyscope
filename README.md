@@ -41,7 +41,7 @@ Continuous playback uses the same closed buffer, ensuring no clicks, drifts or c
 
 | Function | Purpose | Key Parameters |
 | :-- | :-- | :-- |
-| `generate_lissajous()` | Return `(buffer, sr)`—float32 stereo NumPy array. | `base_freq`, `ratio`, `phase_deg`, `sr` |
+| `generate_lissajous()` | Return `(buffer, sr)`—float32 stereo NumPy array. | `base_freq`, `l_fact`, `r_fact`, `phase_deg`, `sr` |
 | `play_lissajous()` | Loop the buffer indefinitely (blocking). | as above |
 | `plot_lissajous()` | Render the trace with Matplotlib. | as above |
 
@@ -49,8 +49,9 @@ Continuous playback uses the same closed buffer, ensuring no clicks, drifts or c
 
 | Name | Type | Default | Meaning |
 | :-- | :-- | :-- | :-- |
-| `base_freq` | float | 1,000 Hz | Left/X frequency $f_x$. |
-| `ratio` | int | 1 | Right/Y multiplier $f_y = ratio \cdot f_x$. |
+| `base_freq` | float | 1,000 Hz | Base frequency |
+| `l_fact` | int | 1 | Left/X multiplier $f_x = l\_fact \cdot base\_freq$ |
+| `r_fact` | int | 1 | Right/Y multiplier $f_y = r\_fact \cdot base\_freq$ |
 | `phase_deg` | float | 90° | Phase offset of $f_y$. |
 | `sr` | int | 48,000 | Sample rate (samples s⁻¹). |
 
@@ -72,13 +73,13 @@ ls.play_lissajous()        # endless tone, Ctrl-C to stop
 
 ```python
 # 2. Generate waves with 1 : 3 frequency ratio with 45° phase
-ls.plot_lissajous(base_freq=500, ratio=3, phase_deg=45)
+ls.plot_lissajous(base_freq=500, l_fact=1, r_fact=3, phase_deg=45)
 
 ```
 
 ```python
 # 3. Retrieve closed buffer for custom analysis
-buf, sr = ls.generate_lissajous(base_freq=250, ratio=4, phase_deg=0)
+buf, sr = ls.generate_lissajous(base_freq=250, l_fact=1, r_fact=4, phase_deg=0)
 # buf.shape → (192, 2) for 250 Hz at 48 kHz
 ```
 ***
