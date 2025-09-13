@@ -109,7 +109,6 @@ def play_lissajous(
     from .audio import play_buffer
     play_buffer(buffer, sr)
 
-
 def plot_lissajous(
     base_freq: float = DEFAULT_BASE_FREQ,
     l_fact: int = DEFAULT_L_FACT,
@@ -117,7 +116,7 @@ def plot_lissajous(
     phase_deg: float = DEFAULT_PHASE_DEG,
     sr: int = DEFAULT_SR,
 ) -> None:
-    """Plot the figure. Requires matplotlib."""
+    """Plot the waveform (time-domain + Lissajous). Requires matplotlib."""
     try:
         import matplotlib.pyplot as plt
     except ModuleNotFoundError as exc:
@@ -125,19 +124,43 @@ def plot_lissajous(
             "Plotting requires matplotlib → pip install lisspyscope[plot]"
         ) from exc
 
-    buffer, _ = generate_lissajous(base_freq, l_fact, r_fact, phase_deg, sr)
+    # Generate buffer and time base for one seamless cycle
+    buffer, sr = generate_lissajous(base_freq, l_fact, r_fact, phase_deg, sr)
     double_buf = np.vstack([buffer, buffer])
-    x, y = double_buf.T
-    plt.plot(x, y, lw=0.8)
-    plt.title(
-    rf"Lissajous: $f_L={base_freq*l_fact:.0f}\,\text{{Hz}}$, "
-    rf"$f_R={base_freq*r_fact:.0f}\,\text{{Hz}}$, "
-    rf"$\varphi={phase_deg:.1f}^\circ$"
-)
-    plt.axis("equal")
-    plt.xlabel("Left channel")
-    plt.ylabel("Right channel")
-    plt.grid(ls=":")
-    plt.show()
+    N = len(double_buf)
+    t = np.arange(N) / sr  * 1000 #time in ms
+    actual_time_ms = (N / sr) * 1000  # duration of one repeat block in ms
+    left, right = double_buf.T
 
+    max_time_ms = 2
+    plot_time_ms = min(max_time_ms, actual_time_ms)
+    max_samples = int(sr * (plot_time_ms / 1000.0))
 
+    # Non-blocking interactive mode
+    plt.ion()
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
+    # --- Time-domain plot ---
+    axes[0].plot(t[:max_samples], left[:max_samples], label=f"Left ({base_freq*l_fact:.0f} Hz)")
+    axes[0].plot(t[:max_samples], right[:max_samples], label=f"Right ({base_freq*r_fact:.0f} Hz, {phase_deg:.1f}°)")
+    axes[0].set_title("Waveforms (Time Domain)")
+    axes[0].set_xlabel("Time [ms]")
+    axes[0].set_ylabel("Amplitude")
+    axes[0].legend()
+    axes[0].grid(ls=":")
+
+    # --- Lissajous plot ---
+    axes[1].plot(left, right, lw=0.8)
+    axes[1].set_title(
+        rf"Lissajous: $f_L={base_freq*l_fact:.0f}\,\text{{Hz}}$, "
+        rf"$f_R={base_freq*r_fact:.0f}\,\text{{Hz}}$, "
+        rf"$\varphi={phase_deg:.1f}^\circ$"
+    )
+    axes[1].set_xlabel("Left channel")
+    axes[1].set_ylabel("Right channel")
+    axes[1].axis("equal")
+    axes[1].grid(ls=":")
+
+    plt.tight_layout()
+    plt.draw()
+    plt.pause(0.001)  # allow GUI to refresh, but don’t block

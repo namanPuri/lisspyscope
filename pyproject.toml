@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "lisspyscope"
-version = "0.1.1"
+version = "0.1.2"
 description = "Generate, visualise and analyse Lissajous figures using python and oscilloscope."
 authors = [{ name = "Naman Puri", email = "namanpuri1712@gmail.com" }]
 readme = "README.md"

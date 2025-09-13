@@ -14,7 +14,7 @@ python examples/ratio_2_to_3_phase45.py
 import lisspyscope as ls
 
 # 1 . Visual snapshot (returns immediately)
-ls.plot_lissajous(base_freq=500, l_fact=3, r_fact=5, phase_deg=105)
+ls.plot_lissajous(base_freq=500, l_fact=2, r_fact=3, phase_deg=45)
 
 # 2 . Continuous tone — Ctrl-C to stop
-ls.play_lissajous(base_freq=500, l_fact=3, r_fact=5, phase_deg=105)
+ls.play_lissajous(base_freq=500, l_fact=2, r_fact=3, phase_deg=45)
